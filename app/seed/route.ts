@@ -103,15 +103,27 @@ async function seedRevenue() {
 
 export async function GET() {
   try {
-    const result = await sql.begin((sql) => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
-    ]);
+    await sql.begin(async (tx) => {
+      await seedUsers();
+      await seedCustomers();
+      await seedInvoices();
+      await seedRevenue();
+    });
 
-    return Response.json({ message: 'Database seeded successfully' });
+    return Response.json({
+      message: 'Database seeded successfully',
+    });
   } catch (error) {
-    return Response.json({ error }, { status: 500 });
+    console.error('Erro ao executar seed:', error);
+
+    return Response.json(
+      {
+        error: error instanceof Error
+          ? error.message
+          : String(error),
+      },
+      { status: 500 },
+    );
   }
+
 }
